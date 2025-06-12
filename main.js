@@ -10,18 +10,18 @@ const BOARD_WIDTH = 14;
 const BOARD_HEIGHT = 30;
 
 class Pieza {
-    constructor(nombre,tamanio){
-        this.nombre = nombre
-        this.tamanio = tamanio
+    constructor(nombre, tamanio) {
+        this.nombre = nombre;
+        this.tamanio = tamanio;
     }
-    getNombre(){
+    getNombre() {
         return this.nombre;
     }
-    getTamanio(){
-        return this.tamanio;
+    getTamanio() {
+        return Array.from(this.tamanio);
     }
-    setPosition(position){
-        this.tamanio = position
+    setPosition(position) {
+        this.tamanio = position;
     }
 }
 /**
@@ -33,13 +33,34 @@ const EVENT_MOVEMENTS = {
     RIGHT: "ArrowRight",
 };
 
-const cuadrado = new Pieza("cuadrado",[[1, 1],[1, 1]])
-const linea = new Pieza("linea",[[1, 1,1, 1]])
-const piezaT=new Pieza("T",[[0, 1, 0],[1, 1, 1]])
-const piezaS=new Pieza("S",[[0, 1, 1],[1, 1, 0]])
-const piezaZ=new Pieza("Z",[[0, 1, 1],[1, 1, 0]])
-const piezaL=new Pieza("L",[[1, 0],[1, 0],[1, 1]])
-const piezaJ=new Pieza("J",[[0, 1],[0, 1],[1, 1],])
+const cuadrado = new Pieza("cuadrado", [
+    [1, 1],
+    [1, 1],
+]);
+const linea = new Pieza("linea", [[1, 1, 1, 1]]);
+const piezaT = new Pieza("T", [
+    [0, 1, 0],
+    [1, 1, 1],
+]);
+const piezaS = new Pieza("S", [
+    [0, 1, 1],
+    [1, 1, 0],
+]);
+const piezaZ = new Pieza("Z", [
+    [1, 1, 0],
+    [0, 1, 1],
+]);
+const piezaL = new Pieza("L", [
+    [1, 0],
+    [1, 0],
+    [1, 1],
+]);
+const piezaJ = new Pieza("J", [
+    [0, 1],
+    [0, 1],
+    [1, 1],
+]);
+
 /**
  * las piezas
  */
@@ -84,7 +105,7 @@ const PIECES = [
     //[
     //  [0, 1],[0, 1],[1, 1],],];
     piezaJ,
-]
+];
 const canvas = document.querySelector("canvas");
 const context = canvas.getContext("2d");
 const $score = document.querySelector("span");
@@ -148,7 +169,8 @@ function createBoard(width, height) {
 
 const piece = {
     position: { x: 5, y: 5 },
-    shape: cuadrado.getTamanio()
+    shape: cuadrado.getTamanio(),
+    name: cuadrado.getNombre(),
 };
 
 let dropCounter = 0;
@@ -156,7 +178,7 @@ let lastTime = 0;
 
 /**
  * actualiza la pantalla y va moviendo las piezas
- * @param {*} time 
+ * @param {*} time
  */
 function update(time = 0) {
     const deltaTime = time - lastTime;
@@ -164,6 +186,11 @@ function update(time = 0) {
 
     dropCounter += deltaTime;
 
+    if (score <= 300) {
+        dropCounter += deltaTime + score;
+    } else {
+        dropCounter += deltaTime + 300;
+    }
     if (dropCounter > 1000) {
         piece.position.y++;
         dropCounter = 0;
@@ -185,45 +212,44 @@ function update(time = 0) {
 function draw() {
     context.fillStyle = "#000";
     context.fillRect(0, 0, canvas.width, canvas.height);
-
     board.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value === 1) {
-                context.fillStyle = "yellow";
+                context.fillStyle = "#A3E4D7";
                 context.fillRect(x, y, 1, 1);
             }
         });
     });
 
-    piece.shape.forEach((row, y) => {
+    Array.from(piece.shape).forEach((row, y) => {
         row.forEach((value, x) => {
             if (value) {
-                const position = PIECES.indexOf(piece.shape.getNombre);
-                switch (position) {
-                    case 0:
-                        context.fillStyle = "yellow";
+                const nombre = piece.name;
+                switch (nombre) {
+                    case "cuadrado":
+                        context.fillStyle = "brown";
                         break;
-                    case 1:
+                    case "linea":
                         context.fillStyle = "cyan";
                         break;
-                    case 2:
+                    case "T":
                         context.fillStyle = "purple";
                         break;
-                    case 3:
+                    case "S":
                         context.fillStyle = "red";
                         break;
-                    case 4:
+                    case "Z":
                         context.fillStyle = "green";
                         break;
-                    case 5:
+                    case "L":
                         context.fillStyle = "orange";
                         break;
-                    case 6:
+                    case "J":
                         context.fillStyle = "blue";
                         break;
                     default:
                         context.fillStyle = "pink";
-                    break;
+                        break;
                 }
                 context.fillRect(x + piece.position.x, y + piece.position.y, 1, 1);
             }
@@ -254,6 +280,7 @@ document.addEventListener("keydown", (event) => {
     if (event.key === EVENT_MOVEMENTS.DOWN) {
         piece.position.y++;
         if (checkCollision()) {
+            0;
             piece.position.y--;
             solidifyPiece();
             removeRows();
@@ -263,22 +290,20 @@ document.addEventListener("keydown", (event) => {
     if (event.key === "ArrowUp") {
         const rotated = [];
 
-        for (let i = 0; i < piece.shape[0].length; i++) {
+        for (let i = 0; i < Array.from(piece.shape)[0].length; i++) {
             const row = [];
 
-            for (let j = piece.shape.length - 1; j >= 0; j--) {
-                row.push(piece.shape[j][i]);
+            for (let j = Array.from(piece.shape).length - 1; j >= 0; j--) {
+                row.push(Array.from(piece.shape)[j][i]);
             }
-
             rotated.push(row);
         }
 
         const previousShape = piece.shape;
-        
+        piece.shape = rotated;
         if (checkCollision()) {
             piece.shape = previousShape;
         }
-        
     }
 });
 
@@ -286,7 +311,7 @@ document.addEventListener("keydown", (event) => {
  * funcion para comprobar las coliciones
  */
 function checkCollision() {
-    return piece.shape.find((row, y) => {
+    return Array.from(piece.shape).find((row, y) => {
         return row.find((value, x) => {
             return (
                 value === 1 && board[y + piece.position.y]?.[x + piece.position.x] !== 0
@@ -295,7 +320,11 @@ function checkCollision() {
     });
 }
 
+/**
+ * solidifica la pieza
+ */
 function solidifyPiece() {
+
     piece.shape.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value === 1) {
@@ -307,11 +336,15 @@ function solidifyPiece() {
     resetPiece();
 }
 
-
+/**
+ * pone una nueva pieza nueva en la pantalla
+ */
 function resetPiece() {
     piece.position.x = Math.floor(BOARD_WIDTH / 2 - 2);
     piece.position.y = 0;
-    piece.shape = PIECES[Math.floor(Math.random() * PIECES.length)].getTamanio;
+    let pieza = PIECES[Math.floor(Math.random() * PIECES.length)];
+    piece.shape = pieza.getTamanio();
+    piece.name = pieza.getNombre();
     if (checkCollision()) {
         window.alert("Game over!! Sorry!");
         board.forEach((row) => row.fill(0));
@@ -319,6 +352,9 @@ function resetPiece() {
     }
 }
 
+/**
+ * resetea las coordenadas
+ */
 function removeRows() {
     const rowsToRemove = [];
 
